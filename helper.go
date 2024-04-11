@@ -1,6 +1,9 @@
 package slogtool
 
-import "log/slog"
+import (
+	"log/slog"
+	"runtime/debug"
+)
 
 func ErrorLevel(err error) slog.Level {
 	if err != nil {
@@ -19,4 +22,8 @@ func ErrorAttr(err error) slog.Attr {
 	}
 
 	return slog.Attr{}
+}
+
+func Stack(name string) slog.Attr {
+	return slog.Any(name, debug.Stack())
 }
