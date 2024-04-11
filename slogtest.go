@@ -6,6 +6,11 @@ import (
 	"log/slog"
 )
 
+func TestLoggerOnly(w io.Writer) *slog.Logger {
+	_, l := TestLogger(w)
+	return l
+}
+
 func TestLogger(w io.Writer) (*slog.LevelVar, *slog.Logger) {
 	if w == nil {
 		return new(slog.LevelVar), slog.New(SlogNullHandler{})
