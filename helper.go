@@ -9,3 +9,14 @@ func ErrorLevel(err error) slog.Level {
 
 	return slog.LevelInfo
 }
+
+func ErrorAttr(err error) slog.Attr {
+	if err != nil {
+		return slog.Attr{
+			Key:   "error",
+			Value: slog.AnyValue(err),
+		}
+	}
+
+	return slog.Attr{}
+}
