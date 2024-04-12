@@ -42,18 +42,26 @@ func WithLevel(lvl interface{}) SlogManagerHandlerOpts {
 	}
 }
 
+type CustomNewHandler func(name string, w io.Writer, opts *slog.HandlerOptions) slog.Handler
+
+func WithCustomHandler(custom CustomNewHandler) SlogManagerOpts {
+	return func(sm *SlogManager) {
+		sm.coreNewHandler = custom
+	}
+}
+
 func WithTextHandler() SlogManagerOpts {
 	return func(sm *SlogManager) {
-		sm.coreNewHandler = func(w io.Writer, ho *slog.HandlerOptions) slog.Handler {
-			return slog.NewTextHandler(w, ho)
+		sm.coreNewHandler = func(_ string, w io.Writer, opts *slog.HandlerOptions) slog.Handler {
+			return slog.NewTextHandler(w, opts)
 		}
 	}
 }
 
 func WithJSONHandler() SlogManagerOpts {
 	return func(sm *SlogManager) {
-		sm.coreNewHandler = func(w io.Writer, ho *slog.HandlerOptions) slog.Handler {
-			return slog.NewJSONHandler(w, ho)
+		sm.coreNewHandler = func(_ string, w io.Writer, opts *slog.HandlerOptions) slog.Handler {
+			return slog.NewJSONHandler(w, opts)
 		}
 	}
 }

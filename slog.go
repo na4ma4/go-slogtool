@@ -20,7 +20,7 @@ type slogHandlerNewFunc func(io.Writer, *slog.HandlerOptions) slog.Handler
 // the individual loggers are not kept, but levels are kept
 // indexed by name.
 type SlogManager struct {
-	coreNewHandler     slogHandlerNewFunc
+	coreNewHandler     CustomNewHandler
 	defaultHandlerOpts *slog.HandlerOptions
 	defaultWriter      io.Writer
 	iLogger            *slog.Logger
@@ -45,8 +45,8 @@ func NewSlogManager(opts ...interface{}) *SlogManager {
 	}
 
 	out := &SlogManager{
-		coreNewHandler: func(w io.Writer, ho *slog.HandlerOptions) slog.Handler {
-			return slog.NewTextHandler(w, ho)
+		coreNewHandler: func(_ string, w io.Writer, opts *slog.HandlerOptions) slog.Handler {
+			return slog.NewTextHandler(w, opts)
 		},
 		defaultHandlerOpts: defaultHandlerOpts,
 		defaultWriter:      defaultWriter,
@@ -232,7 +232,7 @@ func (a *SlogManager) Named(name string, opts ...interface{}) *slog.Logger {
 		}
 	}
 
-	namedLogger := a.coreNewHandler(a.defaultWriter, handlerOpts)
+	namedLogger := a.coreNewHandler(name, a.defaultWriter, handlerOpts)
 
 	return slog.New(namedLogger)
 }
