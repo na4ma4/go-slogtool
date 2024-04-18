@@ -42,7 +42,7 @@ func (h *SlogHandlerWrapper) Enabled(_ context.Context, in slog.Level) bool {
 	h.lock.RLock()
 	defer h.lock.RUnlock()
 
-	return in > h.level.Level()
+	return in >= h.level.Level()
 }
 
 // Handle handles the Record.
