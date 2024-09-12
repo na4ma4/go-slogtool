@@ -14,7 +14,7 @@ const (
 	slogManagerInternalDefaultLevel = 255
 )
 
-type slogHandlerNewFunc func(io.Writer, *slog.HandlerOptions) slog.Handler
+// type slogHandlerNewFunc func(io.Writer, *slog.HandlerOptions) slog.Handler
 
 // SlogManager provides a wrapper for multiple *slog.Logger levels,
 // the individual loggers are not kept, but levels are kept

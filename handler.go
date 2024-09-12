@@ -130,7 +130,7 @@ func writeLog(ctx context.Context, lh *loggingHandler, req *http.Request, url ur
 	}
 
 	uri := req.RequestURI
-	if req.ProtoMajor == 2 && req.Method == "CONNECT" {
+	if req.ProtoMajor == 2 && req.Method == http.MethodConnect {
 		uri = req.Host
 	}
 

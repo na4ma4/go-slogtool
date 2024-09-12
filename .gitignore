@@ -1,2 +1,5 @@
 /.makefiles/
 /artifacts/
+/.makefiles
+/artifacts
+/dist
