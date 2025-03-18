@@ -47,6 +47,8 @@ func TestReplaceSourcePath(t *testing.T) {
 }
 
 func replaceTimefunc(t *testing.T, in string) string {
+	t.Helper()
+
 	if idx := strings.Index(in, " "); strings.HasPrefix(in, "time=") && idx > 0 {
 		in = replaceSourcePath(t, in[idx:])
 	}
