@@ -21,7 +21,7 @@ func NewSlogHandlerWrapper(handler slog.Handler, lvl slog.Leveler) *SlogHandlerW
 	}
 }
 
-// Level return a reference to *slog.LevelVar so the level can be changed on request.
+// SetLevel sets the internal level to the specified slog.Level.
 func (h *SlogHandlerWrapper) SetLevel(lvl slog.Level) {
 	h.lock.Lock()
 	defer h.lock.Unlock()

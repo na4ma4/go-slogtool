@@ -142,16 +142,22 @@ func writeLog(ctx context.Context, lh *loggingHandler, req *http.Request, url ur
 		slog.Group("http", // 0
 			slog.String("host", host),         // 1
 			slog.String("username", username), // 2
-			slogFieldOrSkip(lh.opts.includeTimestamp, slog.String("timestamp", ts.Format(time.RFC3339Nano))), // 3
-			slog.String("method", req.Method),                                                     // 4
-			slog.String("uri", sanitizeURI(uri)),                                                  // 5
-			slog.String("proto", req.Proto),                                                       // 6
-			slog.Int("status", status),                                                            // 7
-			slog.Int("size", size),                                                                // 8
-			slog.String("referer", sanitizeURI(req.Referer())),                                    // 9
-			slog.String("user-agent", sanitizeUserAgent(req.UserAgent())),                         // 10
-			slogFieldOrSkip(lh.opts.includeTiming, slog.Duration("request-time", time.Since(ts))), // 11
-			slogFieldOrSkip(lh.opts.includeXForwardedFor, slog.String("forwarded_for", req.Header.Get("X-Forwarded-For"))), // 12
+			slogFieldOrSkip(lh.opts.includeTimestamp,
+				slog.String("timestamp", ts.Format(time.RFC3339Nano)),
+			), // 3
+			slog.String("method", req.Method),                             // 4
+			slog.String("uri", sanitizeURI(uri)),                          // 5
+			slog.String("proto", req.Proto),                               // 6
+			slog.Int("status", status),                                    // 7
+			slog.Int("size", size),                                        // 8
+			slog.String("referer", sanitizeURI(req.Referer())),            // 9
+			slog.String("user-agent", sanitizeUserAgent(req.UserAgent())), // 10
+			slogFieldOrSkip(lh.opts.includeTiming,
+				slog.Duration("request-time", time.Since(ts)),
+			), // 11
+			slogFieldOrSkip(lh.opts.includeXForwardedFor,
+				slog.String("forwarded_for", req.Header.Get("X-Forwarded-For")),
+			), // 12
 		),
 	}
 
