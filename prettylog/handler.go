@@ -23,6 +23,24 @@ type Handler struct {
 	m *sync.Mutex
 }
 
+func NewHandler(w io.Writer, opts *slog.HandlerOptions) *Handler {
+	if opts == nil {
+		opts = &slog.HandlerOptions{}
+	}
+	b := &bytes.Buffer{}
+	return &Handler{
+		w: w,
+		b: b,
+		h: slog.NewJSONHandler(b, &slog.HandlerOptions{
+			Level:       opts.Level,
+			AddSource:   opts.AddSource,
+			ReplaceAttr: suppressDefaults(opts.ReplaceAttr),
+		}),
+		r: opts.ReplaceAttr,
+		m: &sync.Mutex{},
+	}
+}
+
 func (h *Handler) Enabled(ctx context.Context, level slog.Level) bool {
 	return h.h.Enabled(ctx, level)
 }
@@ -175,23 +193,5 @@ func suppressDefaults(
 			return a
 		}
 		return next(groups, a)
-	}
-}
-
-func NewHandler(w io.Writer, opts *slog.HandlerOptions) *Handler {
-	if opts == nil {
-		opts = &slog.HandlerOptions{}
-	}
-	b := &bytes.Buffer{}
-	return &Handler{
-		w: w,
-		b: b,
-		h: slog.NewJSONHandler(b, &slog.HandlerOptions{
-			Level:       opts.Level,
-			AddSource:   opts.AddSource,
-			ReplaceAttr: suppressDefaults(opts.ReplaceAttr),
-		}),
-		r: opts.ReplaceAttr,
-		m: &sync.Mutex{},
 	}
 }
