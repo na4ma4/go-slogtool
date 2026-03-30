@@ -23,7 +23,7 @@ func expectLogLines(t *testing.T, rd io.Reader, expect []string) {
 	}
 
 	lines := []string{}
-	for _, line := range strings.Split(string(body), "\n") {
+	for line := range strings.SplitSeq(string(body), "\n") {
 		if len(line) > 0 {
 			lines = append(lines, line)
 		}
