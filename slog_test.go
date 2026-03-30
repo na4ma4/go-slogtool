@@ -242,7 +242,6 @@ func TestSlogManagerIterator(t *testing.T) {
 			loggers = append(loggers, s+":"+l.Level().String())
 			return nil
 		})
-
 		if err != nil {
 			t.Errorf("SlogManager: Iterator return : got '%s', want 'nil'", err)
 		}

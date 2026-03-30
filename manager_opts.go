@@ -11,14 +11,14 @@ func WithWriter(out io.Writer) SlogManagerOpts {
 	}
 }
 
-func WithDefaultLevel(lvl interface{}) SlogManagerOpts {
+func WithDefaultLevel(lvl any) SlogManagerOpts {
 	return func(sm *SlogManager) {
 		v, _ := slogParseLevel(lvl)
 		sm.defaultHandlerOpts.Level = v
 	}
 }
 
-func WithInternalLevel(lvl interface{}) SlogManagerOpts {
+func WithInternalLevel(lvl any) SlogManagerOpts {
 	return func(sm *SlogManager) {
 		l := sm.NewLevel(slogManagerInternalName)
 		if v, ok := l.(*slog.LevelVar); ok {
@@ -35,7 +35,7 @@ func WithSource(withSource bool) SlogManagerHandlerOpts {
 	}
 }
 
-func WithLevel(lvl interface{}) SlogManagerHandlerOpts {
+func WithLevel(lvl any) SlogManagerHandlerOpts {
 	return func(ho *slog.HandlerOptions) {
 		v, _ := slogParseLevel(lvl)
 		ho.Level = v

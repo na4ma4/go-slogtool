@@ -19,7 +19,7 @@ const (
 // ErrUnimplemented is returned when a method is unimplemented.
 var ErrUnimplemented = errors.New("unimplemented method")
 
-// loggingHandler is the http.Handler implementation for LoggingHandlerTo and its
+// loggingHandler is the [http.Handler] implementation for LoggingHandlerTo and its
 // friends.
 type loggingHandler struct {
 	logger  *slog.Logger
@@ -49,7 +49,7 @@ func makeLogger(w http.ResponseWriter) loggingResponseWriter {
 	return &responseLogger{w: w, status: http.StatusOK, size: 0}
 }
 
-// responseLogger is wrapper of http.ResponseWriter that keeps track of its HTTP
+// responseLogger is wrapper of [http.ResponseWriter] that keeps track of its HTTP
 // status code and body size.
 type responseLogger struct {
 	w      http.ResponseWriter
@@ -169,8 +169,8 @@ func writeLog(ctx context.Context, lh *loggingHandler, req *http.Request, url ur
 	)
 }
 
-// LoggingHTTPHandler return a http.Handler that wraps h and logs requests to out using
-// a *slog.Logger.
+// LoggingHTTPHandler return a [http.Handler] that wraps h and logs requests to out using
+// a [slog.Logger].
 func LoggingHTTPHandler(logger *slog.Logger, httpHandler http.Handler, opts ...loggingOptionsFunc) http.Handler {
 	opt := &loggingOptions{
 		includeTiming:        true,

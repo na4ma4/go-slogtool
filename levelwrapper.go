@@ -21,7 +21,7 @@ func NewSlogHandlerWrapper(handler slog.Handler, lvl slog.Leveler) *SlogHandlerW
 	}
 }
 
-// SetLevel sets the internal level to the specified slog.Level.
+// SetLevel sets the internal level to the specified [slog.Level].
 func (h *SlogHandlerWrapper) SetLevel(lvl slog.Level) {
 	h.lock.Lock()
 	defer h.lock.Unlock()
@@ -34,7 +34,7 @@ func (h *SlogHandlerWrapper) SetLevel(lvl slog.Level) {
 // It is called early, before any arguments are processed,
 // to save effort if the log event should be discarded.
 // If called from a Logger method, the first argument is the context
-// passed to that method, or context.Background() if nil was passed
+// passed to that method, or [context.Background()] if nil was passed
 // or the method does not take a context.
 // The context is passed so Enabled can use its values
 // to make a decision.

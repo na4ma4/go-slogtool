@@ -16,7 +16,7 @@ const (
 
 // type slogHandlerNewFunc func(io.Writer, *slog.HandlerOptions) slog.Handler
 
-// SlogManager provides a wrapper for multiple *slog.Logger levels,
+// SlogManager provides a wrapper for multiple [slog.Logger] levels,
 // the individual loggers are not kept, but levels are kept
 // indexed by name.
 type SlogManager struct {
@@ -29,7 +29,7 @@ type SlogManager struct {
 }
 
 // NewSlogManager returns a new SlogManager ready for use.
-func NewSlogManager(opts ...interface{}) *SlogManager {
+func NewSlogManager(opts ...any) *SlogManager {
 	defaultLevel := new(slog.LevelVar)
 	defaultLevel.Set(slog.LevelInfo)
 	var defaultWriter io.Writer = os.Stdout
@@ -81,7 +81,7 @@ func (a *SlogManager) NewLevel(name string) slog.Leveler {
 	return a.levels[name]
 }
 
-func slogParseLevel(v interface{}) (slog.Level, bool) {
+func slogParseLevel(v any) (slog.Level, bool) {
 	switch lvl := v.(type) {
 	case slog.Leveler:
 		return lvl.Level(), true
@@ -137,8 +137,8 @@ func (a *SlogManager) doesKeyMatch(key, check string) bool {
 }
 
 // SetLevel attempts to set the level supplied, it will attempt to typecast the value
-// against string, slog.Level and slog.Leveler.
-func (a *SlogManager) SetLevel(name string, lvl interface{}) bool {
+// against string, [slog.Level] and [slog.Leveler].
+func (a *SlogManager) SetLevel(name string, lvl any) bool {
 	a.iLogger.Debug("SetLevel", slog.String("name", name))
 
 	found := false
@@ -170,7 +170,7 @@ func (a *SlogManager) String() string {
 	a.lock.RLock()
 	defer a.lock.RUnlock()
 
-	out := []string{}
+	out := make([]string, 0, len(a.levels))
 
 	for k, v := range a.levels {
 		out = append(out, k+":"+v.Level().String())
@@ -212,9 +212,9 @@ func (a *SlogManager) Delete(name string) {
 	delete(a.levels, name)
 }
 
-// Named returns a named *slog.Logger if any additional parameters are specified it will
-// try to determine if they represent a log level (by string, zapcore.Level or slog.Leveler).
-func (a *SlogManager) Named(name string, opts ...interface{}) *slog.Logger {
+// Named returns a named [slog.Logger] if any additional parameters are specified it will
+// try to determine if they represent a log level (by string, zapcore.Level or [slog.Leveler]).
+func (a *SlogManager) Named(name string, opts ...any) *slog.Logger {
 	lvl := a.NewLevel(name)
 
 	handlerOpts := &slog.HandlerOptions{

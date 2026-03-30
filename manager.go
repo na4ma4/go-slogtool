@@ -6,10 +6,10 @@ import (
 
 type LogManager interface {
 	NewLevel(name string) slog.Leveler
-	Named(name string, opts ...interface{}) *slog.Logger
+	Named(name string, opts ...any) *slog.Logger
 	Iterator(f func(name string, level slog.Leveler) error) error
 	IsLogger(name string) bool
-	SetLevel(name string, lvl interface{}) bool
+	SetLevel(name string, lvl any) bool
 	Delete(name string)
 	String() string
 }

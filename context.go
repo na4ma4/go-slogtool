@@ -18,9 +18,9 @@ const (
 func NewSlogManagerInContext(
 	ctx context.Context,
 	debug bool,
-	opts ...interface{},
+	opts ...any,
 ) (context.Context, LogManager, *slog.Logger) {
-	opts = append([]interface{}{WithSource(false)}, opts...)
+	opts = append([]any{WithSource(false)}, opts...)
 
 	if debug {
 		opts = append(opts,
