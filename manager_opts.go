@@ -1,67 +1,24 @@
 package slogtool
 
 import (
-	"io"
+	"fmt"
 	"log/slog"
 )
 
-func WithWriter(out io.Writer) SlogManagerOpts {
-	return func(sm *SlogManager) {
-		sm.defaultWriter = out
-	}
-}
-
-func WithDefaultLevel(lvl any) SlogManagerOpts {
-	return func(sm *SlogManager) {
-		v, _ := slogParseLevel(lvl)
-		sm.defaultHandlerOpts.Level = v
-	}
-}
-
-func WithInternalLevel(lvl any) SlogManagerOpts {
-	return func(sm *SlogManager) {
-		l := sm.NewLevel(slogManagerInternalName)
-		if v, ok := l.(*slog.LevelVar); ok {
-			if lv, lok := slogParseLevel(lvl); lok {
-				v.Set(lv)
-			}
-		}
-	}
-}
-
 func WithSource(withSource bool) SlogManagerHandlerOpts {
-	return func(ho *slog.HandlerOptions) {
+	return func(ho *slog.HandlerOptions) error {
 		ho.AddSource = withSource
+		return nil
 	}
 }
 
 func WithLevel(lvl any) SlogManagerHandlerOpts {
-	return func(ho *slog.HandlerOptions) {
-		v, _ := slogParseLevel(lvl)
+	return func(ho *slog.HandlerOptions) error {
+		v, ok := slogParseLevel(lvl)
+		if !ok {
+			return fmt.Errorf("invalid log level: %v", lvl)
+		}
 		ho.Level = v
-	}
-}
-
-type CustomNewHandler func(name string, w io.Writer, opts *slog.HandlerOptions) slog.Handler
-
-func WithCustomHandler(custom CustomNewHandler) SlogManagerOpts {
-	return func(sm *SlogManager) {
-		sm.coreNewHandler = custom
-	}
-}
-
-func WithTextHandler() SlogManagerOpts {
-	return func(sm *SlogManager) {
-		sm.coreNewHandler = func(_ string, w io.Writer, opts *slog.HandlerOptions) slog.Handler {
-			return slog.NewTextHandler(w, opts)
-		}
-	}
-}
-
-func WithJSONHandler() SlogManagerOpts {
-	return func(sm *SlogManager) {
-		sm.coreNewHandler = func(_ string, w io.Writer, opts *slog.HandlerOptions) slog.Handler {
-			return slog.NewJSONHandler(w, opts)
-		}
+		return nil
 	}
 }

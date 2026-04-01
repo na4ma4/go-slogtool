@@ -10,11 +10,15 @@ import (
 )
 
 const (
-	slogManagerInternalName         = "Internal.SlogManager"
+	defaultSlogManagerInternalName  = "Internal.SlogManager"
 	slogManagerInternalDefaultLevel = 255
 )
 
-// type slogHandlerNewFunc func(io.Writer, *slog.HandlerOptions) slog.Handler
+// SlogManagerOpts is a function type that can be used to configure the SlogManager when creating a new instance.
+type SlogManagerOpts func(*SlogManager) error
+
+// CustomNewHandler is a function type that can be used to provide a custom handler for new sub loggers created by the SlogManager.
+type CustomNewHandler func(name string, w io.Writer, opts *slog.HandlerOptions) slog.Handler
 
 // SlogManager provides a wrapper for multiple [slog.Logger] levels,
 // the individual loggers are not kept, but levels are kept
@@ -24,12 +28,23 @@ type SlogManager struct {
 	defaultHandlerOpts *slog.HandlerOptions
 	defaultWriter      io.Writer
 	iLogger            *slog.Logger
+	iLoggerName        string
 	levels             map[string]*slog.LevelVar
 	lock               sync.RWMutex
 }
 
-// NewSlogManager returns a new SlogManager ready for use.
-func NewSlogManager(opts ...any) *SlogManager {
+// MustNewSlogManager is a helper function that panics if there is an error creating the SlogManager, otherwise it returns the SlogManager.
+func MustNewSlogManager(opts ...any) *SlogManager {
+	out, err := NewSlogManager(opts...)
+	if err != nil {
+		panic(err)
+	}
+	return out
+}
+
+// NewSlogManager creates a new SlogManager with the provided options, if any.
+// If there is an error applying the options, it returns the SlogManager and the error.
+func NewSlogManager(opts ...any) (*SlogManager, error) {
 	defaultLevel := new(slog.LevelVar)
 	defaultLevel.Set(slog.LevelInfo)
 	var defaultWriter io.Writer = os.Stdout
@@ -40,7 +55,9 @@ func NewSlogManager(opts ...any) *SlogManager {
 
 	for _, opti := range opts {
 		if opt, ok := opti.(SlogManagerHandlerOpts); ok {
-			opt(defaultHandlerOpts)
+			if err := opt(defaultHandlerOpts); err != nil {
+				return nil, err
+			}
 		}
 	}
 
@@ -50,22 +67,27 @@ func NewSlogManager(opts ...any) *SlogManager {
 		},
 		defaultHandlerOpts: defaultHandlerOpts,
 		defaultWriter:      defaultWriter,
+		iLoggerName:        defaultSlogManagerInternalName,
 		levels:             map[string]*slog.LevelVar{},
 		lock:               sync.RWMutex{},
 	}
 
-	out.levels[slogManagerInternalName] = new(slog.LevelVar)
-	out.levels[slogManagerInternalName].Set(slogManagerInternalDefaultLevel)
-
 	for _, opti := range opts {
 		if opt, ok := opti.(SlogManagerOpts); ok {
-			opt(out)
+			if err := opt(out); err != nil {
+				return out, err
+			}
 		}
 	}
 
-	out.iLogger = out.Named(slogManagerInternalName)
+	if _, ok := out.levels[out.iLoggerName]; !ok {
+		out.levels[out.iLoggerName] = new(slog.LevelVar)
+		out.levels[out.iLoggerName].Set(slogManagerInternalDefaultLevel)
+	}
 
-	return out
+	out.iLogger = out.Named(out.iLoggerName)
+
+	return out, nil
 }
 
 // NewLevel returns as a log.Leveler reference to the stored named level.
@@ -110,7 +132,7 @@ func (a *SlogManager) doesKeyMatch(key, check string) bool {
 	}
 
 	// if it's the internal logger, don't match wildcards.
-	if strings.EqualFold(key, slogManagerInternalName) {
+	if strings.EqualFold(key, a.iLoggerName) {
 		return false
 	}
 
@@ -228,7 +250,7 @@ func (a *SlogManager) Named(name string, opts ...any) *slog.Logger {
 		case int, slog.Level, slog.Leveler:
 			a.SetLevel(name, v)
 		case SlogManagerHandlerOpts:
-			v(handlerOpts)
+			_ = v(handlerOpts)
 		}
 	}
 

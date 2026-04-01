@@ -34,7 +34,7 @@ func NewHandler(w io.Writer, opts *slog.HandlerOptions) *Handler {
 		h: slog.NewJSONHandler(b, &slog.HandlerOptions{
 			Level:       opts.Level,
 			AddSource:   opts.AddSource,
-			ReplaceAttr: suppressDefaults(opts.ReplaceAttr),
+			ReplaceAttr: SuppressDefaults(opts.ReplaceAttr),
 		}),
 		r: opts.ReplaceAttr,
 		m: &sync.Mutex{},
@@ -89,17 +89,17 @@ func (h *Handler) computeAttrs(
 func (h *Handler) colourizeLevel(level string, r *slog.Record) string {
 	switch {
 	case r.Level <= slog.LevelDebug:
-		return colorize(lightGray, level)
+		return Colorize(LightGray, level)
 	case r.Level <= slog.LevelInfo:
-		return colorize(cyan, level)
+		return Colorize(Cyan, level)
 	case r.Level < slog.LevelWarn:
-		return colorize(lightBlue, level)
+		return Colorize(LightBlue, level)
 	case r.Level < slog.LevelError:
-		return colorize(lightYellow, level)
+		return Colorize(LightYellow, level)
 	case r.Level <= slog.LevelError+1:
-		return colorize(lightRed, level)
+		return Colorize(LightRed, level)
 	case r.Level > slog.LevelError+1:
-		return colorize(lightMagenta, level)
+		return Colorize(LightMagenta, level)
 	}
 
 	return level
@@ -130,7 +130,7 @@ func (h *Handler) Handle(ctx context.Context, r slog.Record) error {
 		timeAttr = h.r([]string{}, timeAttr)
 	}
 	if !timeAttr.Equal(slog.Attr{}) {
-		timestamp = colorize(lightGray, timeAttr.Value.String())
+		timestamp = Colorize(LightGray, timeAttr.Value.String())
 	}
 
 	var msg string
@@ -142,7 +142,7 @@ func (h *Handler) Handle(ctx context.Context, r slog.Record) error {
 		msgAttr = h.r([]string{}, msgAttr)
 	}
 	if !msgAttr.Equal(slog.Attr{}) {
-		msg = colorize(white, msgAttr.Value.String())
+		msg = Colorize(White, msgAttr.Value.String())
 	}
 
 	attrs, err := h.computeAttrs(ctx, r)
@@ -173,14 +173,14 @@ func (h *Handler) Handle(ctx context.Context, r slog.Record) error {
 		out.WriteString(" ")
 	}
 	if len(bytes) > 0 {
-		out.WriteString(colorize(darkGray, string(bytes)))
+		out.WriteString(Colorize(DarkGray, string(bytes)))
 	}
 	fmt.Fprintln(h.w, out.String())
 
 	return nil
 }
 
-func suppressDefaults(
+func SuppressDefaults(
 	next func([]string, slog.Attr) slog.Attr,
 ) func([]string, slog.Attr) slog.Attr {
 	return func(groups []string, a slog.Attr) slog.Attr {
