@@ -49,7 +49,7 @@ func expectLogLines(t *testing.T, rd io.Reader, expect []string) {
 func TestSlogManagerDefaultLevel(t *testing.T) {
 	buf := bytes.NewBuffer(nil)
 	ctx := context.Background()
-	testLog := slogtool.NewSlogManager(
+	testLog, _ := slogtool.NewSlogManager(
 		ctx,
 		slogtool.WithWriter(buf),
 	)
@@ -67,7 +67,7 @@ func TestSlogManagerDefaultLevel(t *testing.T) {
 func TestSlogManagerChangeDefaultLevelNotInternal(t *testing.T) {
 	buf := bytes.NewBuffer(nil)
 	ctx := context.Background()
-	testLog := slogtool.NewSlogManager(
+	testLog, _ := slogtool.NewSlogManager(
 		ctx,
 		slogtool.WithWriter(buf),
 		slogtool.WithDefaultLevel(slog.LevelDebug),
@@ -86,7 +86,7 @@ func TestSlogManagerChangeDefaultLevelNotInternal(t *testing.T) {
 func TestSlogManagerChangeDefaultLevelInternal(t *testing.T) {
 	buf := bytes.NewBuffer(nil)
 	ctx := context.Background()
-	testLog := slogtool.NewSlogManager(
+	testLog, _ := slogtool.NewSlogManager(
 		ctx,
 		slogtool.WithWriter(buf),
 		slogtool.WithDefaultLevel(slog.LevelInfo),
@@ -112,7 +112,7 @@ func TestSlogManagerChangeDefaultLevelInternal(t *testing.T) {
 func TestSlogManagerWithSource(t *testing.T) {
 	buf := bytes.NewBuffer(nil)
 	ctx := context.Background()
-	testLog := slogtool.NewSlogManager(
+	testLog, _ := slogtool.NewSlogManager(
 		ctx,
 		slogtool.WithWriter(buf),
 		slogtool.WithDefaultLevel(slog.LevelDebug),
@@ -132,7 +132,7 @@ func TestSlogManagerWithSource(t *testing.T) {
 func TestSlogManagerWithTextLevels(t *testing.T) {
 	buf := bytes.NewBuffer(nil)
 	ctx := context.Background()
-	testLog := slogtool.NewSlogManager(
+	testLog, _ := slogtool.NewSlogManager(
 		ctx,
 		slogtool.WithWriter(buf),
 		slogtool.WithDefaultLevel("debug"),
@@ -184,7 +184,7 @@ func TestSlogManagerWithTextLevels(t *testing.T) {
 func TestSlogManagerString(t *testing.T) {
 	buf := bytes.NewBuffer(nil)
 	ctx := context.Background()
-	testLog := slogtool.NewSlogManager(
+	testLog, _ := slogtool.NewSlogManager(
 		ctx,
 		slogtool.WithWriter(buf),
 		slogtool.WithDefaultLevel("debug"),
@@ -204,7 +204,7 @@ func TestSlogManagerString(t *testing.T) {
 func TestSlogManagerIsLogger(t *testing.T) {
 	buf := bytes.NewBuffer(nil)
 	ctx := context.Background()
-	testLog := slogtool.NewSlogManager(
+	testLog, _ := slogtool.NewSlogManager(
 		ctx,
 		slogtool.WithWriter(buf),
 		slogtool.WithDefaultLevel("debug"),
@@ -226,7 +226,7 @@ func TestSlogManagerIsLogger(t *testing.T) {
 func TestSlogManagerIterator(t *testing.T) {
 	buf := bytes.NewBuffer(nil)
 	ctx := context.Background()
-	testLog := slogtool.NewSlogManager(
+	testLog, _ := slogtool.NewSlogManager(
 		ctx,
 		slogtool.WithWriter(buf),
 		slogtool.WithDefaultLevel("debug"),
@@ -275,7 +275,7 @@ func TestSlogManagerIterator(t *testing.T) {
 func TestSlogManagerNamedOpts(t *testing.T) {
 	buf := bytes.NewBuffer(nil)
 	ctx := context.Background()
-	testLog := slogtool.NewSlogManager(
+	testLog, _ := slogtool.NewSlogManager(
 		ctx,
 		slogtool.WithWriter(buf),
 		slogtool.WithDefaultLevel(slog.LevelDebug),
@@ -304,7 +304,7 @@ func TestSlogManagerNamedOpts(t *testing.T) {
 func TestSlogManagerSetLevelMatchers(t *testing.T) {
 	buf := bytes.NewBuffer(nil)
 	ctx := context.Background()
-	testLog := slogtool.NewSlogManager(
+	testLog, _ := slogtool.NewSlogManager(
 		ctx,
 		slogtool.WithWriter(buf),
 		slogtool.WithDefaultLevel(slog.LevelDebug),
@@ -376,7 +376,7 @@ func TestSlogManagerSetLevelMatchers(t *testing.T) {
 func TestSlogManagerSetLevelValues(t *testing.T) {
 	buf := bytes.NewBuffer(nil)
 	ctx := context.Background()
-	testLog := slogtool.NewSlogManager(
+	testLog, _ := slogtool.NewSlogManager(
 		ctx,
 		slogtool.WithWriter(buf),
 		slogtool.WithDefaultLevel(slog.LevelDebug),
@@ -470,7 +470,7 @@ func TestSlogManagerSetLevelValues(t *testing.T) {
 func TestSlogManagerSlogManagerInternalLevel(t *testing.T) {
 	buf := bytes.NewBuffer(nil)
 	ctx := context.Background()
-	testLog := slogtool.NewSlogManager(
+	testLog, _ := slogtool.NewSlogManager(
 		ctx,
 		slogtool.WithWriter(buf),
 		slogtool.WithDefaultLevel(slog.LevelDebug),
@@ -491,7 +491,7 @@ func TestSlogManagerSlogManagerInternalLevel(t *testing.T) {
 func TestSlogManagerTextFormatter(t *testing.T) {
 	buf := bytes.NewBuffer(nil)
 	ctx := context.Background()
-	testLog := slogtool.NewSlogManager(
+	testLog, _ := slogtool.NewSlogManager(
 		ctx,
 		slogtool.WithWriter(buf),
 		slogtool.WithDefaultLevel(slog.LevelDebug),
@@ -509,7 +509,7 @@ func TestSlogManagerTextFormatter(t *testing.T) {
 func TestSlogManagerJSONFormatter(t *testing.T) {
 	buf := bytes.NewBuffer(nil)
 	ctx := context.Background()
-	testLog := slogtool.NewSlogManager(
+	testLog, _ := slogtool.NewSlogManager(
 		ctx,
 		slogtool.WithWriter(buf),
 		slogtool.WithDefaultLevel(slog.LevelDebug),

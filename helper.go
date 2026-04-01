@@ -25,5 +25,5 @@ func ErrorAttr(err error) slog.Attr {
 }
 
 func Stack(name string) slog.Attr {
-	return slog.Any(name, debug.Stack())
+	return slog.String(name, string(debug.Stack()))
 }

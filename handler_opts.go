@@ -1,12 +1,22 @@
 package slogtool
 
-import "log/slog"
+import (
+	"log/slog"
+	"net/http"
+)
+
+type (
+	LoggingIgnoreRequestCallback   func(req *http.Request) bool
+	LoggingExtractUsernameCallback func(req *http.Request) (string, bool)
+)
 
 type loggingOptions struct {
-	includeTiming        bool
-	includeTimestamp     bool
-	includeXForwardedFor bool
-	logLevel             slog.Leveler
+	includeTiming           bool
+	includeTimestamp        bool
+	includeXForwardedFor    bool
+	ignoreRequestCallback   LoggingIgnoreRequestCallback
+	extractUsernameCallback LoggingExtractUsernameCallback
+	logLevel                slog.Leveler
 }
 
 type loggingOptionsFunc func(o *loggingOptions)
@@ -45,5 +55,23 @@ func LoggingOptionForwardedFor(state bool) loggingOptionsFunc {
 func LoggingOptionLogLevel(level slog.Leveler) loggingOptionsFunc {
 	return func(o *loggingOptions) {
 		o.logLevel = level
+	}
+}
+
+// LoggingOptionIgnoreRequest defines a callback that determines if a request should be ignored in logging.
+//
+//nolint:revive // deliberately not-exported function type.
+func LoggingOptionIgnoreRequest(callback LoggingIgnoreRequestCallback) loggingOptionsFunc {
+	return func(o *loggingOptions) {
+		o.ignoreRequestCallback = callback
+	}
+}
+
+// LoggingOptionExtractUsername defines a callback that extracts the username from a request.
+//
+//nolint:revive // deliberately not-exported function type.
+func LoggingOptionExtractUsername(callback LoggingExtractUsernameCallback) loggingOptionsFunc {
+	return func(o *loggingOptions) {
+		o.extractUsernameCallback = callback
 	}
 }

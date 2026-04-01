@@ -14,6 +14,4 @@ type LogManager interface {
 	String() string
 }
 
-type SlogManagerHandlerOpts func(*slog.HandlerOptions)
-
-type SlogManagerOpts func(*SlogManager)
+type SlogManagerHandlerOpts func(*slog.HandlerOptions) error
