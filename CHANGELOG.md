@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/na4ma4/go-slogtool/compare/v1.0.0...v1.0.1) (2026-06-02)
+
+
+### Bug Fixes
+
+* HTTP Handler was ignoring log level of the underlying handler ([#25](https://github.com/na4ma4/go-slogtool/issues/25)) ([22806e1](https://github.com/na4ma4/go-slogtool/commit/22806e195f944d95d01747f03acc2a1d80176227))
+
 ## 1.0.0 (2026-04-01)
 
 
