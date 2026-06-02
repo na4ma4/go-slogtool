@@ -26,6 +26,8 @@ func replaceSourcePath(t *testing.T, in string) string {
 }
 
 func TestReplaceSourcePath(t *testing.T) {
+	t.Parallel()
+
 	wd, err := os.Getwd()
 	if err != nil {
 		t.Errorf("ReplaceSourcePath: error : got '%s' want 'nil'", err)
@@ -61,6 +63,8 @@ func replaceTimefunc(t *testing.T, in string) string {
 }
 
 func TestReplaceTime(t *testing.T) {
+	t.Parallel()
+
 	{ // Text
 		input := `time=2024-04-11T14:40:27.064+10:00 level=DEBUG msg=debug2 foo2=bar2`
 		expect := ` level=DEBUG msg=debug2 foo2=bar2`
