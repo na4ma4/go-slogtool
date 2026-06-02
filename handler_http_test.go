@@ -90,7 +90,7 @@ func TestLoggingHTTPHandlerWithDebugUnderlyingHandler(t *testing.T) {
 	}
 }
 
-func TestLoggingHTTPHandlerRespectsUnderlyingHandlerLevelWithSlogManager(t *testing.T) {
+func TestLoggingHTTPHandlerRespectsUnderlyingHandlerLevelInfo(t *testing.T) {
 	t.Parallel()
 
 	buf := bytes.NewBuffer(nil)
