@@ -193,13 +193,6 @@ func LoggingHTTPHandler(logger *slog.Logger, httpHandler http.Handler, opts ...l
 		f(opt)
 	}
 
-	logger = slog.New(
-		NewSlogHandlerWrapper(
-			logger.Handler(),
-			opt.logLevel,
-		),
-	)
-
 	return loggingHandler{
 		logger,
 		httpHandler,
@@ -223,13 +216,6 @@ func LoggingHTTPHandlerWrapper(logger *slog.Logger, opts ...loggingOptionsFunc) 
 	for _, f := range opts {
 		f(opt)
 	}
-
-	logger = slog.New(
-		NewSlogHandlerWrapper(
-			logger.Handler(),
-			opt.logLevel,
-		),
-	)
 
 	return func(next http.Handler) http.Handler {
 		return loggingHandler{

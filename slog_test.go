@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+
 	"github.com/na4ma4/go-slogtool"
 )
 
@@ -47,6 +48,8 @@ func expectLogLines(t *testing.T, rd io.Reader, expect []string) {
 }
 
 func TestSlogManagerDefaultLevel(t *testing.T) {
+	t.Parallel()
+
 	buf := bytes.NewBuffer(nil)
 	ctx := context.Background()
 	testLog, _ := slogtool.NewSlogManager(
@@ -65,6 +68,8 @@ func TestSlogManagerDefaultLevel(t *testing.T) {
 }
 
 func TestSlogManagerChangeDefaultLevelNotInternal(t *testing.T) {
+	t.Parallel()
+
 	buf := bytes.NewBuffer(nil)
 	ctx := context.Background()
 	testLog, _ := slogtool.NewSlogManager(
@@ -84,6 +89,8 @@ func TestSlogManagerChangeDefaultLevelNotInternal(t *testing.T) {
 }
 
 func TestSlogManagerChangeDefaultLevelInternal(t *testing.T) {
+	t.Parallel()
+
 	buf := bytes.NewBuffer(nil)
 	ctx := context.Background()
 	testLog, _ := slogtool.NewSlogManager(
@@ -110,6 +117,8 @@ func TestSlogManagerChangeDefaultLevelInternal(t *testing.T) {
 }
 
 func TestSlogManagerWithSource(t *testing.T) {
+	t.Parallel()
+
 	buf := bytes.NewBuffer(nil)
 	ctx := context.Background()
 	testLog, _ := slogtool.NewSlogManager(
@@ -130,6 +139,8 @@ func TestSlogManagerWithSource(t *testing.T) {
 }
 
 func TestSlogManagerWithTextLevels(t *testing.T) {
+	t.Parallel()
+
 	buf := bytes.NewBuffer(nil)
 	ctx := context.Background()
 	testLog, _ := slogtool.NewSlogManager(
@@ -182,6 +193,8 @@ func TestSlogManagerWithTextLevels(t *testing.T) {
 }
 
 func TestSlogManagerString(t *testing.T) {
+	t.Parallel()
+
 	buf := bytes.NewBuffer(nil)
 	ctx := context.Background()
 	testLog, _ := slogtool.NewSlogManager(
@@ -202,6 +215,8 @@ func TestSlogManagerString(t *testing.T) {
 }
 
 func TestSlogManagerIsLogger(t *testing.T) {
+	t.Parallel()
+
 	buf := bytes.NewBuffer(nil)
 	ctx := context.Background()
 	testLog, _ := slogtool.NewSlogManager(
@@ -224,6 +239,8 @@ func TestSlogManagerIsLogger(t *testing.T) {
 }
 
 func TestSlogManagerIterator(t *testing.T) {
+	t.Parallel()
+
 	buf := bytes.NewBuffer(nil)
 	ctx := context.Background()
 	testLog, _ := slogtool.NewSlogManager(
@@ -273,6 +290,8 @@ func TestSlogManagerIterator(t *testing.T) {
 }
 
 func TestSlogManagerNamedOpts(t *testing.T) {
+	t.Parallel()
+
 	buf := bytes.NewBuffer(nil)
 	ctx := context.Background()
 	testLog, _ := slogtool.NewSlogManager(
@@ -302,6 +321,8 @@ func TestSlogManagerNamedOpts(t *testing.T) {
 }
 
 func TestSlogManagerSetLevelMatchers(t *testing.T) {
+	t.Parallel()
+
 	buf := bytes.NewBuffer(nil)
 	ctx := context.Background()
 	testLog, _ := slogtool.NewSlogManager(
@@ -374,6 +395,8 @@ func TestSlogManagerSetLevelMatchers(t *testing.T) {
 }
 
 func TestSlogManagerSetLevelValues(t *testing.T) {
+	t.Parallel()
+
 	buf := bytes.NewBuffer(nil)
 	ctx := context.Background()
 	testLog, _ := slogtool.NewSlogManager(
@@ -468,6 +491,8 @@ func TestSlogManagerSetLevelValues(t *testing.T) {
 }
 
 func TestSlogManagerSlogManagerInternalLevel(t *testing.T) {
+	t.Parallel()
+
 	buf := bytes.NewBuffer(nil)
 	ctx := context.Background()
 	testLog, _ := slogtool.NewSlogManager(
@@ -489,6 +514,8 @@ func TestSlogManagerSlogManagerInternalLevel(t *testing.T) {
 }
 
 func TestSlogManagerTextFormatter(t *testing.T) {
+	t.Parallel()
+
 	buf := bytes.NewBuffer(nil)
 	ctx := context.Background()
 	testLog, _ := slogtool.NewSlogManager(
@@ -507,6 +534,8 @@ func TestSlogManagerTextFormatter(t *testing.T) {
 }
 
 func TestSlogManagerJSONFormatter(t *testing.T) {
+	t.Parallel()
+
 	buf := bytes.NewBuffer(nil)
 	ctx := context.Background()
 	testLog, _ := slogtool.NewSlogManager(
@@ -521,5 +550,188 @@ func TestSlogManagerJSONFormatter(t *testing.T) {
 	sublog.DebugContext(ctx, "sublog:debug1")
 	expectLogLines(t, buf, []string{
 		`{"time":"` + timeTestString + `","level":"DEBUG","msg":"sublog:debug1"}`,
+	})
+}
+
+func TestSlogManagerMustNewSlogManager(t *testing.T) {
+	t.Parallel()
+
+	buf := bytes.NewBuffer(nil)
+	testLog := slogtool.MustNewSlogManager(
+		context.Background(),
+		slogtool.WithWriter(buf),
+		slogtool.WithDefaultLevel(slog.LevelDebug),
+	)
+	if testLog == nil {
+		t.Fatal("MustNewSlogManager returned nil")
+	}
+}
+
+func TestSlogManagerMustNewSlogManagerPanic(t *testing.T) {
+	t.Parallel()
+
+	defer func() {
+		if r := recover(); r == nil {
+			t.Fatal("expected panic from WithDefaultLevel invalid value")
+		}
+	}()
+
+	slogtool.MustNewSlogManager(
+		context.Background(),
+		slogtool.WithDefaultLevel(true),
+	)
+}
+
+func TestSlogManagerDelete(t *testing.T) {
+	t.Parallel()
+
+	buf := bytes.NewBuffer(nil)
+	ctx := context.Background()
+	testLog, _ := slogtool.NewSlogManager(
+		ctx,
+		slogtool.WithWriter(buf),
+		slogtool.WithDefaultLevel(slog.LevelDebug),
+	)
+
+	_ = testLog.Named("sublog")
+	_ = testLog.Named("sublog2")
+
+	if !testLog.IsLogger("sublog") {
+		t.Fatal("expected sublog to exist before Delete")
+	}
+
+	testLog.Delete("sublog")
+
+	if testLog.IsLogger("sublog") {
+		t.Fatal("expected sublog to be deleted")
+	}
+}
+
+func TestSlogManagerSetLevelReturnsFalse(t *testing.T) {
+	t.Parallel()
+
+	buf := bytes.NewBuffer(nil)
+	ctx := context.Background()
+	testLog, _ := slogtool.NewSlogManager(
+		ctx,
+		slogtool.WithWriter(buf),
+		slogtool.WithDefaultLevel(slog.LevelDebug),
+	)
+
+	_ = testLog.Named("sublog")
+
+	if ok := testLog.SetLevel("nonexistent", slog.LevelDebug); ok {
+		t.Fatal("expected SetLevel to return false for nonexistent logger")
+	}
+}
+
+func TestSlogManagerSetLevelInvalidValue(t *testing.T) {
+	t.Parallel()
+
+	buf := bytes.NewBuffer(nil)
+	ctx := context.Background()
+	testLog, _ := slogtool.NewSlogManager(
+		ctx,
+		slogtool.WithWriter(buf),
+		slogtool.WithDefaultLevel(slog.LevelDebug),
+	)
+
+	_ = testLog.Named("sublog")
+
+	if ok := testLog.SetLevel("sublog", true); ok {
+		t.Fatal("expected SetLevel to return false for invalid value")
+	}
+}
+
+func TestSlogManagerNamedWithSlogManagerHandlerOpts(t *testing.T) {
+	t.Parallel()
+
+	buf := bytes.NewBuffer(nil)
+	ctx := context.Background()
+	testLog, _ := slogtool.NewSlogManager(
+		ctx,
+		slogtool.WithWriter(buf),
+		slogtool.WithDefaultLevel(slog.LevelDebug),
+	)
+
+	sublog := testLog.Named("sublog",
+		slogtool.WithSource(false),
+	)
+	sublog.DebugContext(ctx, "sublog:debug1")
+
+	expectLogLines(t, buf, []string{
+		"time=" + timeTestString + " level=DEBUG msg=sublog:debug1",
+	})
+}
+
+func TestSlogManagerWithInternalName(t *testing.T) {
+	t.Parallel()
+
+	buf := bytes.NewBuffer(nil)
+	testLog, _ := slogtool.NewSlogManager(
+		context.Background(),
+		slogtool.WithWriter(buf),
+		slogtool.WithDefaultLevel(slog.LevelDebug),
+		slogtool.WithInternalName("CustomInternal"),
+		slogtool.WithInternalLevel(slog.LevelDebug),
+	)
+
+	if !testLog.IsLogger("CustomInternal") {
+		t.Fatal("expected CustomInternal logger to exist")
+	}
+}
+
+func TestSlogManagerWithCustomHandler(t *testing.T) {
+	t.Parallel()
+
+	buf := bytes.NewBuffer(nil)
+	ctx := context.Background()
+	testLog, _ := slogtool.NewSlogManager(
+		ctx,
+		slogtool.WithWriter(buf),
+		slogtool.WithDefaultLevel(slog.LevelDebug),
+		slogtool.WithCustomHandler(func(_ string, w io.Writer, opts *slog.HandlerOptions) slog.Handler {
+			return slog.NewJSONHandler(w, opts)
+		}),
+	)
+
+	sublog := testLog.Named("sublog")
+	sublog.DebugContext(ctx, "sublog:debug1")
+
+	expectLogLines(t, buf, []string{
+		`{"time":"` + timeTestString + `","level":"DEBUG","msg":"sublog:debug1"}`,
+	})
+}
+
+func TestSlogManagerSubLoggerWith(t *testing.T) {
+	t.Parallel()
+
+	buf := bytes.NewBuffer(nil)
+	ctx := context.Background()
+	testLog, _ := slogtool.NewSlogManager(
+		ctx,
+		slogtool.WithWriter(buf),
+		slogtool.WithDefaultLevel(slog.LevelDebug),
+		slogtool.WithJSONHandler(),
+	)
+
+	sublog := testLog.Named("sublog")
+	sublog.DebugContext(ctx, "sublog:debug1")
+
+	sslog := sublog.With(slog.String("foo", "bar"))
+	sslog.DebugContext(ctx, "sublog:debug2")
+
+	testLog.SetLevel("sublog", slog.LevelInfo)
+
+	sslog.DebugContext(ctx, "sublog:debug3")
+
+	testLog.SetLevel("sublog", slog.LevelDebug)
+
+	sslog.DebugContext(ctx, "sublog:debug4")
+
+	expectLogLines(t, buf, []string{
+		`{"time":"` + timeTestString + `","level":"DEBUG","msg":"sublog:debug1"}`,
+		`{"time":"` + timeTestString + `","level":"DEBUG","msg":"sublog:debug2","foo":"bar"}`,
+		`{"time":"` + timeTestString + `","level":"DEBUG","msg":"sublog:debug4","foo":"bar"}`,
 	})
 }

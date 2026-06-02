@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 
@@ -28,7 +29,101 @@ func readSingleLogObject(t *testing.T, buf *bytes.Buffer) map[string]any {
 	return item
 }
 
+func TestLoggingHTTPHandlerRespectsUnderlyingHandlerLevel(t *testing.T) {
+	t.Parallel()
+
+	buf := bytes.NewBuffer(nil)
+	base := slog.New(slog.NewJSONHandler(buf, &slog.HandlerOptions{Level: slog.LevelWarn}))
+
+	h := slogtool.LoggingHTTPHandler(
+		base,
+		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			_, _ = w.Write([]byte("ok"))
+		}),
+		slogtool.LoggingOptionTiming(false),
+		slogtool.LoggingOptionTimestamp(false),
+	)
+
+	req := httptest.NewRequest(http.MethodGet, "http://example.com/test", nil)
+	req.RemoteAddr = "127.0.0.1:1234"
+
+	rw := httptest.NewRecorder()
+	h.ServeHTTP(rw, req)
+
+	if rw.Code != http.StatusOK {
+		t.Fatalf("status code mismatch: got=%d want=%d", rw.Code, http.StatusOK)
+	}
+
+	if out := strings.TrimSpace(buf.String()); out != "" {
+		t.Fatalf("expected no log output when underlying handler level is WARN, got=%q", out)
+	}
+}
+
+func TestLoggingHTTPHandlerWithDebugUnderlyingHandler(t *testing.T) {
+	t.Parallel()
+
+	buf := bytes.NewBuffer(nil)
+	base := slog.New(slog.NewJSONHandler(buf, &slog.HandlerOptions{Level: slog.LevelDebug}))
+
+	h := slogtool.LoggingHTTPHandler(
+		base,
+		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			_, _ = w.Write([]byte("ok"))
+		}),
+		slogtool.LoggingOptionTiming(false),
+		slogtool.LoggingOptionTimestamp(false),
+	)
+
+	req := httptest.NewRequest(http.MethodGet, "http://example.com/test", nil)
+	req.RemoteAddr = "127.0.0.1:1234"
+
+	rw := httptest.NewRecorder()
+	h.ServeHTTP(rw, req)
+
+	if rw.Code != http.StatusOK {
+		t.Fatalf("status code mismatch: got=%d want=%d", rw.Code, http.StatusOK)
+	}
+
+	obj := readSingleLogObject(t, buf)
+	if lvl, ok := obj["level"].(string); !ok || lvl != "INFO" {
+		t.Fatalf("level mismatch: got=%v want=INFO", obj["level"])
+	}
+}
+
+func TestLoggingHTTPHandlerRespectsUnderlyingHandlerLevelWithSlogManager(t *testing.T) {
+	t.Parallel()
+
+	buf := bytes.NewBuffer(nil)
+	base := slog.New(slog.NewJSONHandler(buf, &slog.HandlerOptions{Level: slog.LevelInfo}))
+
+	h := slogtool.LoggingHTTPHandler(
+		base,
+		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			_, _ = w.Write([]byte("ok"))
+		}),
+		slogtool.LoggingOptionTiming(false),
+		slogtool.LoggingOptionTimestamp(false),
+	)
+
+	req := httptest.NewRequest(http.MethodGet, "http://example.com/test", nil)
+	req.RemoteAddr = "127.0.0.1:1234"
+
+	rw := httptest.NewRecorder()
+	h.ServeHTTP(rw, req)
+
+	if rw.Code != http.StatusOK {
+		t.Fatalf("status code mismatch: got=%d want=%d", rw.Code, http.StatusOK)
+	}
+
+	obj := readSingleLogObject(t, buf)
+	if lvl, ok := obj["level"].(string); !ok || lvl != "INFO" {
+		t.Fatalf("level mismatch: got=%v want=INFO", obj["level"])
+	}
+}
+
 func TestLoggingHTTPHandlerOptionsApplied(t *testing.T) {
+	t.Parallel()
+
 	buf := bytes.NewBuffer(nil)
 	base := slog.New(slog.NewJSONHandler(buf, &slog.HandlerOptions{Level: slog.LevelDebug}))
 
@@ -81,6 +176,8 @@ func TestLoggingHTTPHandlerOptionsApplied(t *testing.T) {
 }
 
 func TestLoggingHTTPHandlerWrapperRespectsLogLevelOption(t *testing.T) {
+	t.Parallel()
+
 	buf := bytes.NewBuffer(nil)
 	base := slog.New(slog.NewJSONHandler(buf, &slog.HandlerOptions{Level: slog.LevelDebug}))
 
@@ -128,6 +225,8 @@ func TestLoggingHTTPHandlerWrapperRespectsLogLevelOption(t *testing.T) {
 }
 
 func TestLoggingHTTPHandlerIgnoreRequestCallback(t *testing.T) {
+	t.Parallel()
+
 	buf := bytes.NewBuffer(nil)
 	base := slog.New(slog.NewJSONHandler(buf, &slog.HandlerOptions{Level: slog.LevelDebug}))
 
@@ -179,6 +278,8 @@ func TestLoggingHTTPHandlerIgnoreRequestCallback(t *testing.T) {
 }
 
 func TestLoggingHTTPHandlerIgnoreRequestCallbackPanic(t *testing.T) {
+	t.Parallel()
+
 	buf := bytes.NewBuffer(nil)
 	base := slog.New(slog.NewJSONHandler(buf, &slog.HandlerOptions{Level: slog.LevelDebug}))
 
@@ -220,6 +321,8 @@ func TestLoggingHTTPHandlerIgnoreRequestCallbackPanic(t *testing.T) {
 }
 
 func TestLoggingHTTPHandlerExtractUsernameCallback(t *testing.T) {
+	t.Parallel()
+
 	buf := bytes.NewBuffer(nil)
 	base := slog.New(slog.NewJSONHandler(buf, &slog.HandlerOptions{Level: slog.LevelDebug}))
 
@@ -256,6 +359,8 @@ func TestLoggingHTTPHandlerExtractUsernameCallback(t *testing.T) {
 }
 
 func TestLoggingHTTPHandlerExtractUsernameCallbackFallback(t *testing.T) {
+	t.Parallel()
+
 	buf := bytes.NewBuffer(nil)
 	base := slog.New(slog.NewJSONHandler(buf, &slog.HandlerOptions{Level: slog.LevelDebug}))
 
@@ -363,6 +468,8 @@ func runIgnoreRequestCase(t *testing.T, tc ignoreRequestCase) {
 }
 
 func TestLoggingHTTPHandlerIgnoreRequestCallbackTableDriven(t *testing.T) {
+	t.Parallel()
+
 	tests := []ignoreRequestCase{
 		{
 			name: "header rule",
@@ -393,6 +500,252 @@ func TestLoggingHTTPHandlerIgnoreRequestCallbackTableDriven(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) { runIgnoreRequestCase(t, tt) })
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			runIgnoreRequestCase(t, tt)
+		})
+	}
+}
+
+//nolint:paralleltest // these tests modify global slog state, so they cannot be run in parallel
+func TestLoggingHTTPHandlerNilLoggerDefaults(t *testing.T) {
+	buf := bytes.NewBuffer(nil)
+	base := slog.New(slog.NewJSONHandler(buf, &slog.HandlerOptions{Level: slog.LevelDebug}))
+	saved := slog.Default()
+	slog.SetDefault(base)
+	defer slog.SetDefault(saved)
+
+	handler := slogtool.LoggingHTTPHandler(
+		nil,
+		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusNoContent)
+		}),
+		slogtool.LoggingOptionTiming(false),
+		slogtool.LoggingOptionTimestamp(false),
+	)
+
+	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req.RemoteAddr = "127.0.0.1:9999"
+
+	rw := httptest.NewRecorder()
+	handler.ServeHTTP(rw, req)
+
+	if rw.Code != http.StatusNoContent {
+		t.Fatalf("status code mismatch: got=%d want=%d", rw.Code, http.StatusNoContent)
+	}
+}
+
+//nolint:paralleltest // these tests modify global slog state, so they cannot be run in parallel
+func TestLoggingHTTPHandlerWrapperNilLoggerDefaults(t *testing.T) {
+	buf := bytes.NewBuffer(nil)
+	base := slog.New(slog.NewJSONHandler(buf, &slog.HandlerOptions{Level: slog.LevelDebug}))
+	saved := slog.Default()
+	slog.SetDefault(base)
+	defer slog.SetDefault(saved)
+
+	mw := slogtool.LoggingHTTPHandlerWrapper(nil)
+
+	handler := mw(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte("ok"))
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req.RemoteAddr = "127.0.0.1:9998"
+
+	rw := httptest.NewRecorder()
+	handler.ServeHTTP(rw, req)
+
+	if rw.Code != http.StatusOK {
+		t.Fatalf("status code mismatch: got=%d want=%d", rw.Code, http.StatusOK)
+	}
+}
+
+func TestLoggingHTTPHandlerPushNonPusher(t *testing.T) {
+	t.Parallel()
+
+	handler := slogtool.LoggingHTTPHandler(
+		slog.Default(),
+		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			pusher, ok := w.(http.Pusher)
+			if !ok {
+				t.Log("underlying writer does not implement Pusher (expected)")
+			} else {
+				err := pusher.Push("/asset", nil)
+				if err != nil {
+					t.Logf("Push returned: %v", err)
+				}
+			}
+			_, _ = w.Write([]byte("ok"))
+		}),
+		slogtool.LoggingOptionTiming(false),
+		slogtool.LoggingOptionTimestamp(false),
+	)
+
+	req := httptest.NewRequest(http.MethodGet, "http://example.com/push", nil)
+	req.RemoteAddr = "127.0.0.1:7777"
+
+	rw := httptest.NewRecorder()
+	handler.ServeHTTP(rw, req)
+
+	if rw.Code != http.StatusOK {
+		t.Fatalf("status code mismatch: got=%d want=%d", rw.Code, http.StatusOK)
+	}
+}
+
+func TestLoggingHTTPHandlerWriteLogSpecialChars(t *testing.T) {
+	t.Parallel()
+
+	buf := bytes.NewBuffer(nil)
+	base := slog.New(slog.NewJSONHandler(buf, &slog.HandlerOptions{Level: slog.LevelDebug}))
+
+	handler := slogtool.LoggingHTTPHandler(
+		base,
+		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			_, _ = w.Write([]byte("ok"))
+		}),
+		slogtool.LoggingOptionTiming(false),
+		slogtool.LoggingOptionTimestamp(false),
+	)
+
+	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req.RemoteAddr = "127.0.0.1:6666"
+	req.Header.Set("User-Agent", "Test\nAgent\r\nBad")
+	req.RequestURI = "/test\npath"
+
+	rw := httptest.NewRecorder()
+	handler.ServeHTTP(rw, req)
+
+	if rw.Code != http.StatusOK {
+		t.Fatalf("status code mismatch: got=%d want=%d", rw.Code, http.StatusOK)
+	}
+
+	obj := readSingleLogObject(t, buf)
+	httpItem, ok := obj["http"].(map[string]any)
+	if !ok {
+		t.Fatalf("expected http group, got=%T", obj["http"])
+	}
+
+	ua, _ := httpItem["user-agent"].(string)
+	if strings.Contains(ua, "\n") || strings.Contains(ua, "\r") {
+		t.Fatalf("user-agent should not contain newlines: %q", ua)
+	}
+}
+
+func TestLoggingHTTPHandlerConnectProto(t *testing.T) {
+	t.Parallel()
+
+	buf := bytes.NewBuffer(nil)
+	base := slog.New(slog.NewJSONHandler(buf, &slog.HandlerOptions{Level: slog.LevelDebug}))
+
+	handler := slogtool.LoggingHTTPHandler(
+		base,
+		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			_, _ = w.Write([]byte("ok"))
+		}),
+		slogtool.LoggingOptionTiming(false),
+		slogtool.LoggingOptionTimestamp(false),
+	)
+
+	req := httptest.NewRequest(http.MethodConnect, "/", nil)
+	req.RemoteAddr = "127.0.0.1:5555"
+	req.ProtoMajor = 2
+	req.Host = "example.com:443"
+	req.RequestURI = ""
+	req.URL = &url.URL{Scheme: "http", Host: "example.com:443"}
+
+	rw := httptest.NewRecorder()
+	handler.ServeHTTP(rw, req)
+
+	if rw.Code != http.StatusOK {
+		t.Fatalf("status code mismatch: got=%d want=%d", rw.Code, http.StatusOK)
+	}
+
+	obj := readSingleLogObject(t, buf)
+	httpItem, ok := obj["http"].(map[string]any)
+	if !ok {
+		t.Fatalf("expected http group, got=%T", obj["http"])
+	}
+
+	uri, _ := httpItem["uri"].(string)
+	if expected := "example.com:443"; uri != expected {
+		t.Fatalf("expected uri=%q for CONNECT request, got=%q", expected, uri)
+	}
+}
+
+func TestLoggingHTTPHandlerCallsHeaderAndFlush(t *testing.T) {
+	t.Parallel()
+
+	buf := bytes.NewBuffer(nil)
+	base := slog.New(slog.NewJSONHandler(buf, &slog.HandlerOptions{Level: slog.LevelDebug}))
+
+	handler := slogtool.LoggingHTTPHandler(
+		base,
+		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.Header().Set("X-Custom", "value")
+			if f, ok := w.(http.Flusher); ok {
+				f.Flush()
+			}
+			_, _ = w.Write([]byte("ok"))
+		}),
+		slogtool.LoggingOptionTiming(false),
+		slogtool.LoggingOptionTimestamp(false),
+	)
+
+	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req.RemoteAddr = "127.0.0.1:4443"
+
+	rw := httptest.NewRecorder()
+	handler.ServeHTTP(rw, req)
+
+	if rw.Code != http.StatusOK {
+		t.Fatalf("status code mismatch: got=%d want=%d", rw.Code, http.StatusOK)
+	}
+	if rw.Header().Get("X-Custom") != "value" {
+		t.Fatal("expected X-Custom header to be set")
+	}
+}
+
+func TestLoggingHTTPHandlerWriteLogSpecialCharsSanitize(t *testing.T) {
+	t.Parallel()
+
+	buf := bytes.NewBuffer(nil)
+	base := slog.New(slog.NewJSONHandler(buf, &slog.HandlerOptions{Level: slog.LevelDebug}))
+
+	handler := slogtool.LoggingHTTPHandler(
+		base,
+		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			_, _ = w.Write([]byte("ok"))
+		}),
+		slogtool.LoggingOptionTiming(false),
+		slogtool.LoggingOptionTimestamp(false),
+	)
+
+	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req.RemoteAddr = "127.0.0.1:5554"
+	req.Header.Set("User-Agent", "test\x00agent")
+	req.Header.Set("Referer", "http://example.com/\nref")
+
+	rw := httptest.NewRecorder()
+	handler.ServeHTTP(rw, req)
+
+	if rw.Code != http.StatusOK {
+		t.Fatalf("status code mismatch: got=%d want=%d", rw.Code, http.StatusOK)
+	}
+
+	obj := readSingleLogObject(t, buf)
+	httpItem, ok := obj["http"].(map[string]any)
+	if !ok {
+		t.Fatalf("expected http group, got=%T", obj["http"])
+	}
+
+	ua, _ := httpItem["user-agent"].(string)
+	if strings.Contains(ua, "\x00") {
+		t.Fatalf("user-agent should not contain null bytes: %q", ua)
+	}
+
+	referer, _ := httpItem["referer"].(string)
+	if strings.Contains(referer, "\n") {
+		t.Fatalf("referer should not contain newlines: %q", referer)
 	}
 }
